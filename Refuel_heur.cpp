@@ -171,7 +171,7 @@ int main()
     map<int,set<float>> heur; //--> wasn't able to figure out logic once I tried implementing
     
     vector<int> heur_dist;
-    vector<label> frontier = {}; //initialized to NULL
+    vector<label> frontier; //initialized to NULL
     map<int, set<float>> computed_heur;
     vector<int> Cost_vec;
     
