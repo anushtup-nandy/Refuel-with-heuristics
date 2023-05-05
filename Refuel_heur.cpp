@@ -8,8 +8,8 @@
 
 /*
     ERRORS in:
-    1. Dijkstra Code
-    2. OPEN list implementation.
+    1. Dijkstra Code (gives [inf,inf,...])
+    2. OPEN list implementation. (couldn't understand how to implement priority queue on the labels)
 */
 using namespace std;
 
@@ -82,7 +82,7 @@ map<int, set<float>> dijkstra(vector<pair<int,pair<int,int>>> adj[], int n, int 
         }
         for (auto edge : adj[u]) {
             int v = edge.first;
-            int w = edge.second.second;
+            int w = edge.second.second; //gives the energy the robot has.
            // cout<< w<<endl;
             if (dist[v] > dist[u] + w) { // if the current path is better than previous paths to v, update the distance and add it to the queue
                 dist[v] = dist[u] + w;
@@ -121,13 +121,15 @@ int Min_cost_graph(vector<pair<int,pair<int,int>>> adj[], int n)
 {
     int min_cost = INT_MAX;
     for(int i = 0; i < n; i++) {
-    for(auto& p : adj[i]) {
-        if(p.second.first < min_cost) {
-            min_cost = p.second.first;
+        for(auto& p : adj[i]) 
+        {
+            if(p.second.first < min_cost) 
+            {
+                min_cost = p.second.first;
+            }
         }
     }
     return min_cost;
-    }
 }
 
 vector<int> Cost_vector(vector<pair<int,pair<int,int>>> adj[], int n)
@@ -150,13 +152,13 @@ int main()
 {
     int n = 4;
 
-    /*
-        The graph is an adjacency list containing:
-        <"successor", <"cost of refuelling", "energy cost on road">>
+/*
+    The graph is an adjacency list containing:
+    <"successor", <"cost of refuelling", "energy cost on road">>
 
-        label will be a *struct*: will have a vertex id, g and q values as well as its own ID.
-            vector-> to map the label with the struct.
-    */
+    label will be a *struct*: will have a vertex id, g and q values as well as its own ID.
+        vector-> to map the label with the struct.
+*/
     vector<pair<int,pair<int,int>>> adj[n];
     label l;
     vector<label> lab;
@@ -168,7 +170,7 @@ int main()
     map<int, set<float>> computed_heur;
     vector<int> Cost_vec;
     
-    //priority_queue<label, vector<label>, greater<label>> OPEN;  //--> couldn't figure out how to implement this.
+    priority_queue<label, vector<label>, greater<label>> OPEN;  //--> couldn't figure out how to implement this.
     
     adj[0] = {make_pair(1,  make_pair(1, 5)),make_pair(2, make_pair(1, 2))};
     adj[1] = {make_pair(2, make_pair(3, 6)),make_pair(3, make_pair(3, 2))};
@@ -180,23 +182,23 @@ int main()
     
     mp = compute_reachable_sets(adj, n, qmax);
 
-    //heur = dijkstra(adj, n, s, t);
+    heur = dijkstra(adj, n, s, t);
     int min_cost = Min_cost_graph(adj, n);
     Cost_vec = Cost_vector(adj,n);
 
-    for (int i = 0; i<n-1; i++)
+    for (int i = 0; i<3; i++)
     {   
         
-        float dvg = heur(adj, n, i, t);
+        float dvg = heur(adj, n, i, t);  //ERROR--> WHY?
         float heur = max((dvg - Cost_vec[i])*min_cost , 0);
         computed_heur[i].insert(heur);
     }
 
 
 
-    /*
-        THE CODE FOR REFUEL A*
-    */
+/*
+    THE CODE FOR REFUEL A*
+*/
     lab.push_back({0, 0, 0});
     OPEN.push(lab[0]);
     
@@ -216,22 +218,31 @@ int main()
 
         if (node == t)
         {
-            return;
+            break;
         }
 
-        for ()
+        for (auto it:mp) //mp is the reachable sets
+        {
+            int cv_prime;
+            int node_prime;
+            for {auto j: it.second}
+            {
+
+            }
+        }
         
 
     }
 
 
 
-
-    //cout << "Shortest distance from node " << s << " to node " << t << " is " << heur << endl;
-
     
 
     //----------_TESTING------------------------------------------------------------------------
+
+/*
+    TESTING BACKWARDS DIJKSTRA:-----> GIVING [INF, INF....]
+*/ 
 
     // vector<int> dist(n, INT_MAX);
     // dijkstra(3, adj, dist,n);
@@ -240,6 +251,10 @@ int main()
     // for (int i = 0; i < n; i++) {
     //     cout << "Shortest distance from node " << i << " to target " << 3 << " is " << dist[i] << endl;
     // }
+
+/*
+    TESTING THE GRAPH:--->CORRECT OUTPUT.
+*/ 
 
     // for(int i=0;i<n;i++){
     // for(int j=0;j<adj[i].size();j++){
@@ -251,14 +266,24 @@ int main()
     // }
     // }
 
-    // for(auto it:mp)
-    // {
-    //     cout<<it.first<<" ";
-    //     for(auto i:it.second)
-    //     {
-    //         cout<<i<<" ";
-    //     }
-    //     cout<<endl;
-    // }
+/*
+    TESTING THE REACHABLE SETS:---> CORRECT OUTPUT.
+    prints for qmax of 10:
+        0->0 1 2 3 
+        1->1 2 3 
+        2->2 3 
+        3->3 
+        
+*/
+    for(auto it:mp)
+    {
+        cout<<it.first<<"->";
+        for(auto i:it.second)
+        {
+            cout<<i<<" ";
+        }
+        cout<<endl;
+    }
     return 0;
 }
+
