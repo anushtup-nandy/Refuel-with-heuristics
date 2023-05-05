@@ -65,17 +65,17 @@ map<int,set<int>> compute_reachable_sets(vector<pair<int,pair<int,int>>> adj[], 
     return mp;
 }
 
-map<int, set<float>> dijkstra(vector<pair<int,pair<int,int>>> adj[], int n, int s, int t) {
+vector<int> dijkstra(vector<pair<int,pair<int,int>>> adj[], int n, int s, int t) {
 
     map<int, set<float>> heur;
-    vector<int> dist(n, INT_MAX); // initialize all distances to INF
-    dist[t] = 0; // set the distance to the target node as 0
+    vector<int> dist(n, INT_MAX); // initialize all energies to INF
+    dist[t] = 0; // set the energy to the target node as 0
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;  //min heap
     pq.push({0, t});
 
     while (!pq.empty()) {
-        int u = pq.top().first;
-        int d = pq.top().second;
+        int u = pq.top().second;
+        int d = pq.top().first;
         pq.pop();
         if (d > dist[u]){
             continue; // skip if we have already found a shorter path to this node
@@ -86,13 +86,15 @@ map<int, set<float>> dijkstra(vector<pair<int,pair<int,int>>> adj[], int n, int 
            // cout<< w<<endl;
             if (dist[v] > dist[u] + w) { // if the current path is better than previous paths to v, update the distance and add it to the queue
                 dist[v] = dist[u] + w;
-                pq.push({v, dist[v]});
+                pq.push({dist[v], v});
+                heur[v].insert(dist[v]); // insert the energy to the map
             }
         }
     }
 
-    return heur; // return the heuristics.
+    return dist;
 }
+
 
 bool CheckForPrune(label l, vector<label>& frontier) {
     for (const auto& l_prime : frontier) {
@@ -165,7 +167,10 @@ int main()
     int qmax = 10;
     float dist[n];
     map<int,set<int>>mp;
-    map<int,set<float>> heur;
+    
+    map<int,set<float>> heur; //--> wasn't able to figure out logic once I tried implementing
+    
+    vector<int> heur_dist;
     vector<label> frontier = {}; //initialized to NULL
     map<int, set<float>> computed_heur;
     vector<int> Cost_vec;
@@ -182,14 +187,14 @@ int main()
     
     mp = compute_reachable_sets(adj, n, qmax);
 
-    heur = dijkstra(adj, n, s, t);
+    heur_dist = dijkstra(adj, n, s, t);
     int min_cost = Min_cost_graph(adj, n);
     Cost_vec = Cost_vector(adj,n);
 
     for (int i = 0; i<3; i++)
     {   
         
-        float dvg = heur(adj, n, i, t);  //ERROR--> WHY?
+        int dvg = dijkstra(adj, n, i, t);  //ERROR--> WHY?
         float heur = max((dvg - Cost_vec[i])*min_cost , 0);
         computed_heur[i].insert(heur);
     }
