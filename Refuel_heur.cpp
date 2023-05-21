@@ -4,6 +4,8 @@
 #include <queue>
 #include <string>
 #include <tuple>
+#include <climits>
+#include <limits>
 #include <bits/stdc++.h>
 
 
@@ -208,9 +210,9 @@ int main()
     {   
         std::vector<int> dijkstra_back = dijkstra(adj, n, i, t);
         heur_dist.push_back(dijkstra_back.back());
-        int dvg;
+        float dvg;
         dvg = heur_dist[i];
-        float heur = std::max((dvg - Cost_vec[i])*min_cost , 0);
+        float heur = std::max((dvg - Cost_vec[i])*min_cost , 0.0f);
         computed_heur[i].insert(heur);
     }
 
@@ -267,7 +269,7 @@ int main()
                     l_succ.id = l_prime.id + 1;
                     l_succ.g = l_prime.g + w;
                     l_succ.q = l_prime.q + e;
-                    l_succ.f = l_succ.g + computed_heur[u].begin(); // ERROR IN THIS LINE!!!!
+                    l_succ.f = l_succ.g + *computed_heur[u].begin(); 
 
                     // Add the successor label to the OPEN set
                     OPEN.insert(std::make_pair(l_succ.f, l_succ.v));
@@ -306,7 +308,7 @@ int main()
     std::cout << std::endl;
 
     return 0;
-    
+
 }
 
 
