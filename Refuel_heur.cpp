@@ -6,29 +6,22 @@
 #include <tuple>
 #include <bits/stdc++.h>
 
-/*
-    ERRORS in:
-    1. Dijkstra Code (gives [inf,inf,...])
-    2. OPEN list implementation. (couldn't understand how to implement priority queue on the labels)
-*/
-using namespace std;
 
 struct label
 {
-    int v;
-    float g, q;
+    int v, id;
+    float f, g, q;
 
 }; 
 
-
-map<int,set<int>> compute_reachable_sets(vector<pair<int,pair<int,int>>> adj[], int n, int qmax){
+std::map<int,std::set<int>> compute_reachable_sets(std::vector<std::pair<int,std::pair<int,int>>> adj[], int n, int qmax){
     
-    map<int,set<int>>mp;
+    std::map<int,std::set<int>>mp;
     for(int i =  0 ; i  < n ; i++)
     {
-        vector<int> d_star(n,INT_MAX);
+        std::vector<int> d_star(n,INT_MAX);
         d_star[i] = 0 ;
-        priority_queue<pair<int,int>,vector<pair<int,int>>,greater<pair<int,int>>>pq;
+        std::priority_queue<std::pair<int,int>,std::vector<std::pair<int,int>>,std::greater<std::pair<int,int>>>pq;
 
         pq.push({0,i});
         while(pq.size()>0)
@@ -65,25 +58,28 @@ map<int,set<int>> compute_reachable_sets(vector<pair<int,pair<int,int>>> adj[], 
     return mp;
 }
 
-vector<int> dijkstra(vector<pair<int,pair<int,int>>> adj[], int n, int s, int t) {
+std::vector<int> dijkstra(std::vector<std::pair<int,std::pair<int,int>>> adj[], int n, int s, int t) {
 
-    map<int, set<float>> heur;
-    vector<int> dist(n, INT_MAX); // initialize all energies to INF
-    dist[t] = 0; // set the energy to the target node as 0
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;  //min heap
-    pq.push({0, t});
+    std::map<int, std::set<float>> heur;
+    std::vector<int> dist(n, std::numeric_limits<int>::max()); // initialize all energies to INF
+    dist[s] = 0; // set the energy to the target node as 0
+    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;  //min heap
+    pq.push({0, s});
 
     while (!pq.empty()) {
-        int u = pq.top().second;
+        int u = pq.top().second;    
         int d = pq.top().first;
+
         pq.pop();
+
         if (d > dist[u]){
             continue; // skip if we have already found a shorter path to this node
         }
+        
         for (auto edge : adj[u]) {
             int v = edge.first;
             int w = edge.second.second; //gives the energy the robot has.
-           // cout<< w<<endl;
+            
             if (dist[v] > dist[u] + w) { // if the current path is better than previous paths to v, update the distance and add it to the queue
                 dist[v] = dist[u] + w;
                 pq.push({dist[v], v});
@@ -96,30 +92,40 @@ vector<int> dijkstra(vector<pair<int,pair<int,int>>> adj[], int n, int s, int t)
 }
 
 
-bool CheckForPrune(label l, vector<label>& frontier) {
-    for (const auto& l_prime : frontier) {
+bool CheckForPrune(label l, std::unordered_map<int, std::vector<label>>& frontier) {
+    int v = l.v;
+
+    for (const auto& l_prime : frontier[v]) {
         if (l_prime.g <= l.g && l_prime.q >= l.q) {
-            return true;
+            return true;  // Skip if conditions are met
         }
     }
     return false;
 }
 
-vector<label> FilterAndAddFront(label l, vector<label>& frontier){
+void FilterAndAddFront(const label& l, std::unordered_map<int, std::vector<label>>& frontier) {
+    int v = l.v;
     
-    vector<label> new_frontier;
+    if (frontier.find(v) == frontier.end()) {
+        frontier[v] = {l};  // Create a new frontier set for vertex v
+        return;
+    }
     
-    for (const auto& l_prime : frontier) {
+    int vertexSize = v + 1;  // The expected length of the frontier set at vertex v
+    if (frontier[v].size() < vertexSize) {
+        frontier[v].resize(vertexSize);  // Increase the length of the frontier set to vertexSize
+    }
+    
+    for (const auto& l_prime : frontier[v]) {
         if (l_prime.g <= l.g && l_prime.q >= l.q) {
-            continue;
+            return;  // Skip if conditions are met
         }
     }
-    new_frontier.push_back(l);
-    frontier = new_frontier;
-    return frontier;
+    
+    frontier[v].push_back(l);  // Add l to frontier set at vertex v
 }
 
-int Min_cost_graph(vector<pair<int,pair<int,int>>> adj[], int n)
+int Min_cost_graph(std::vector<std::pair<int,std::pair<int,int>>> adj[], int n)
 {
     int min_cost = INT_MAX;
     for(int i = 0; i < n; i++) {
@@ -134,9 +140,9 @@ int Min_cost_graph(vector<pair<int,pair<int,int>>> adj[], int n)
     return min_cost;
 }
 
-vector<int> Cost_vector(vector<pair<int,pair<int,int>>> adj[], int n)
+std::vector<int> Cost_vector(std::vector<std::pair<int,std::pair<int,int>>> adj[], int n)
 {
-    vector<int> cost;
+    std::vector<int> cost;
     for(int i=0;i<n;i++){
     for(int j=0;j<adj[i].size();j++){
         int u=i;
@@ -153,33 +159,38 @@ vector<int> Cost_vector(vector<pair<int,pair<int,int>>> adj[], int n)
 int main()
 {
     int n = 4;
-
 /*
     The graph is an adjacency list containing:
     <"successor", <"cost of refuelling", "energy cost on road">>
 
     label will be a *struct*: will have a vertex id, g and q values as well as its own ID.
         vector-> to map the label with the struct.
+
 */
-    vector<pair<int,pair<int,int>>> adj[n];
+
+
+    std::vector<std::pair<int,std::pair<int,int>>> adj[n];
     label l;
-    vector<label> lab;
+    std::vector<label> lab;
+    
     int qmax = 10;
     float dist[n];
-    map<int,set<int>>mp;
+    std::map<int,std::set<int>>mp;
+        
+          
+    std::vector<int> heur_dist;
+    //std::vector<label> frontier; 
+    std::map<int, std::set<float>> computed_heur;
+    std::unordered_map<int, std::vector<label>> frontier; //initialized to NULL
+    std::vector<int> Cost_vec;
     
-    map<int,set<float>> heur; //--> wasn't able to figure out logic once I tried implementing
+    //priority_queue<label, vector<label>, greater<label>> OPEN;  //--> couldn't figure out how to implement this.
     
-    vector<int> heur_dist;
-    vector<label> frontier; //initialized to NULL
-    map<int, set<float>> computed_heur;
-    vector<int> Cost_vec;
+    std::set<std::pair<float, int>> OPEN;
     
-    priority_queue<label, vector<label>, greater<label>> OPEN;  //--> couldn't figure out how to implement this.
-    
-    adj[0] = {make_pair(1,  make_pair(1, 5)),make_pair(2, make_pair(1, 2))};
-    adj[1] = {make_pair(2, make_pair(3, 6)),make_pair(3, make_pair(3, 2))};
-    adj[2] = {make_pair(3,make_pair(4,7))};
+    adj[0] = {std::make_pair(1,  std::make_pair(1, 5)),std::make_pair(2, std::make_pair(1, 2))};
+    adj[1] = {std::make_pair(2, std::make_pair(3, 6)),std::make_pair(3, std::make_pair(3, 2))};
+    adj[2] = {std::make_pair(3,std::make_pair(4,7))};
     
     int s = 0; // source node
     int t = 3; // target node
@@ -187,75 +198,119 @@ int main()
     
     mp = compute_reachable_sets(adj, n, qmax);
 
-    heur_dist = dijkstra(adj, n, s, t);
+    // heur_dist = dijkstra(adj, n, s, t);
     int min_cost = Min_cost_graph(adj, n);
     Cost_vec = Cost_vector(adj,n);
 
-    for (int i = 0; i<3; i++)
+    // dvg will be the last element of the dijkstra vector--> basically the energy consumed for the last node.
+
+    for (int i = 0; i<n; i++)
     {   
-        
-        int dvg = dijkstra(adj, n, i, t);  //ERROR--> WHY?
-        float heur = max((dvg - Cost_vec[i])*min_cost , 0);
+        std::vector<int> dijkstra_back = dijkstra(adj, n, i, t);
+        heur_dist.push_back(dijkstra_back.back());
+        int dvg;
+        dvg = heur_dist[i];
+        float heur = std::max((dvg - Cost_vec[i])*min_cost , 0);
         computed_heur[i].insert(heur);
     }
-
 
 
 /*
     THE CODE FOR REFUEL A*
 */
     lab.push_back({0, 0, 0});
-    OPEN.push(lab[0]);
+    OPEN.insert(std::make_pair(lab[0].f, 0));
+
+    label target_label;
+    target_label.v = t;
+    target_label.id = 0;
+    target_label.f = std::numeric_limits<float>::infinity();
+    target_label.g = std::numeric_limits<float>::infinity();
+    target_label.q = std::numeric_limits<float>::infinity();
     
+    // starting the A* search:
     while(!OPEN.empty())
     {
-        int node = OPEN.top().v;
-        int cost = OPEN.top().g;
-        int ener = OPEN.top().q;
-        l = OPEN.top();
-        OPEN.pop();
+        auto it = OPEN.begin();
+        int v = it->second;
+        OPEN.erase(it);
 
-        if (CheckForPrune(l, frontier)){
-            continue;
-        }
-
-        FilterAndAddFront(l, frontier);
-
-        if (node == t)
+        if (v == t && target_label.q <= qmax)
         {
             break;
         }
 
-        for (auto it:mp) //mp is the reachable sets
-        {
-            int cv_prime;
-            int node_prime;
-            for {auto j: it.second}
-            {
+        const std::vector<label>& labels= frontier[v];
 
+        for (const auto &l_prime : labels)
+        {
+            if (l_prime.g <= l.g && l_prime.q >= l.q)
+            {
+                // Skip if conditions are met
+                continue;
+            }
+            if (l_prime.q <= qmax && !CheckForPrune(l_prime, frontier))
+            {
+                // Add the current label to the result
+                FilterAndAddFront(l_prime, frontier);
+
+                // Generate successor labels
+                for (auto it : adj[v])
+                {
+                    int u = it.first;
+                    int w = it.second.second; // energy cost on road
+                    int e = it.second.first;  // cost of refueling
+
+                    // Compute the new values for the successor label
+                    label l_succ;
+                    l_succ.v = u;
+                    l_succ.id = l_prime.id + 1;
+                    l_succ.g = l_prime.g + w;
+                    l_succ.q = l_prime.q + e;
+                    l_succ.f = l_succ.g + computed_heur[u].begin()->first;
+
+                    // Add the successor label to the OPEN set
+                    OPEN.insert(std::make_pair(l_succ.f, l_succ.v));
+                    FilterAndAddFront(l_succ, frontier);
+                }
             }
         }
-        
-
     }
 
+    // Find the optimal path
+    std::vector<int> optimal_path;
+    label curr_label = target_label;
+    while (curr_label.v != s)
+    {
+        optimal_path.push_back(curr_label.v);
+        int v = curr_label.v;
+        const std::vector<label> &labels = frontier[v];
+        for (const auto &l : labels)
+        {
+            if (l.id == curr_label.id - 1 && l.g == curr_label.g - Cost_vec[v] && l.q == curr_label.q - 1)
+            {
+                curr_label = l;
+                break;
+            }
+        }
+    }
+    optimal_path.push_back(s);
+    std::reverse(optimal_path.begin(), optimal_path.end());
 
+    // Print the optimal path
+    std::cout << "Optimal Path: ";
+    for (int i : optimal_path)
+    {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
 
+    return 0;
     
+}
+
 
     //----------_TESTING------------------------------------------------------------------------
-
-/*
-    TESTING BACKWARDS DIJKSTRA:-----> GIVING [INF, INF....]
-*/ 
-
-    // vector<int> dist(n, INT_MAX);
-    // dijkstra(3, adj, dist,n);
-
-    // // print shortest distances from target to all other nodes
-    // for (int i = 0; i < n; i++) {
-    //     cout << "Shortest distance from node " << i << " to target " << 3 << " is " << dist[i] << endl;
-    // }
 
 /*
     TESTING THE GRAPH:--->CORRECT OUTPUT.
@@ -278,17 +333,16 @@ int main()
         1->1 2 3 
         2->2 3 
         3->3 
-        
-*/
+    
     for(auto it:mp)
     {
-        cout<<it.first<<"->";
+        std::cout<<it.first<<"->";
         for(auto i:it.second)
         {
-            cout<<i<<" ";
+            std::cout<<i<<" ";
         }
-        cout<<endl;
+        std::cout<<std::endl;
     }
-    return 0;
-}
-
+    return 0;    
+        
+*/
