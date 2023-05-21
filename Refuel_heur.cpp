@@ -296,6 +296,7 @@ int main()
             }
         }
     }
+    
     optimal_path.push_back(s);
     std::reverse(optimal_path.begin(), optimal_path.end());
 
