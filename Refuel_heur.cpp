@@ -267,7 +267,7 @@ int main()
                     l_succ.id = l_prime.id + 1;
                     l_succ.g = l_prime.g + w;
                     l_succ.q = l_prime.q + e;
-                    l_succ.f = l_succ.g + computed_heur[u].begin();
+                    l_succ.f = l_succ.g + computed_heur[u].begin(); // ERROR IN THIS LINE!!!!
 
                     // Add the successor label to the OPEN set
                     OPEN.insert(std::make_pair(l_succ.f, l_succ.v));
