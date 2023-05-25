@@ -237,7 +237,7 @@ int main()
         int v = it->second;
         OPEN.erase(it);
 
-        if (v == t && target_label.q <= qmax)
+        if (v == t)
         {
             break;
         }
