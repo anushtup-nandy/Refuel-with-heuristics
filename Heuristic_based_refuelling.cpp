@@ -29,6 +29,11 @@ struct label
 
 }; 
 
+bool compareLabels(const label& lhs, const label& rhs)
+{
+    return lhs.f < rhs.f; // Compare based on the 'f' member
+}
+
 /*  
     ComputeReachable sets:
     prints for qmax of 10:
@@ -299,7 +304,7 @@ int main()
     THE CODE FOR REFUEL A*
 */
     lab.push_back({0, 0, 0.0F, 0.0F, 0.0F}); 
-    OPEN.insert(std::make_pair(lab[0].f, 0)); //(f, index)
+    OPEN.insert(std::make_pair(lab[0].f, lab[0].id)); //(f, index)
 
     label target_label;
     target_label.v = t;
@@ -310,9 +315,10 @@ int main()
     {
         auto it = OPEN.begin();
         auto l = lab[it->second]; //giving the ID
+        std::cout<<"l's v, id, f, g, q: "<<l.v<<" "<<l.v<<" "<<l.id<<" "<<l.f<<" "<<l.g<<" "<<l.q<<std::endl;
         OPEN.erase(it);
         Neighbours = getNeighbors(adj, l.v, n);
-
+        std::cout<<"-------------------------"<<std::endl;
         if (CheckForPrune(l, frontier))
         {
             continue;
@@ -355,15 +361,14 @@ int main()
                     //std::cout<<"The q value for neighbour "<<v_prime<<" of vertex "<< l.v <<" is "<<l_prime.q<<std::endl;
                 }   
             }
-            
-            l_prime.f = l_prime.g + getFloatHeur(computed_heur, v_prime);
-            lab.push_back({l_prime.v, l_prime.id, l_prime.f, l_prime.g, l_prime.q});
             //std::cout<<l_prime.f<<std::endl;
             if (CheckForPrune(l_prime, frontier))
             {
                 continue;
             }
+            l_prime.f = l_prime.g + getFloatHeur(computed_heur, v_prime);
             OPEN.insert(std::make_pair(l_prime.f, l_prime.id)); //--> SOME ERROR HERE?
+            lab.push_back({l_prime.v, l_prime.id, l_prime.f, l_prime.g, l_prime.q});
         }
         
     }
@@ -390,10 +395,18 @@ int main()
     //     std::cout << vertex << " ";
     // }    
     // std::cout << std::endl;
-
+    
+    std::sort(lab.begin(), lab.end(), compareLabels);
     for(auto itr: lab)
     {
+        // std::cout<<"v, id, f, g, q: "<<itr.v<<" "<<itr.id
+        // <<" "<<itr.f<<" "<<itr.g<<" "<<itr.q<<std::endl;
         std::cout<<itr.v<<std::endl;
+        if(itr.v == 3)
+        {
+            break;
+        }
+        
     }
 
     return 0;
