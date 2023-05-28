@@ -271,9 +271,9 @@ int main()
 /*
     GRAPH:
 */
-    adj[0] = {std::make_pair(1,  std::make_pair(1, 5)),std::make_pair(2, std::make_pair(1, 2))};
+    adj[0] = {std::make_pair(1, std::make_pair(1, 5)),std::make_pair(2, std::make_pair(1, 2))};
     adj[1] = {std::make_pair(2, std::make_pair(3, 6)),std::make_pair(3, std::make_pair(3, 2))};
-    adj[2] = {std::make_pair(3,std::make_pair(4,7))};
+    adj[2] = {std::make_pair(3, std::make_pair(4,7))};
     
 /*
     REACHABLE SETS
@@ -298,7 +298,7 @@ int main()
 /*
     THE CODE FOR REFUEL A*
 */
-    lab.push_back({0, 0, 0.0F, 0.0F, 0.0F});
+    lab.push_back({0, 0, 0.0F, 0.0F, 0.0F}); 
     OPEN.insert(std::make_pair(lab[0].f, 0)); //(f, index)
 
     label target_label;
@@ -330,17 +330,15 @@ int main()
         {
             int distance = getdist(adj, l.v, v_prime, n);
             label l_prime;
-
+            l_prime.id++;
             //std::cout<<distance<<std::endl;
             l_prime.v = v_prime;
             if(Cost_vec[v_prime] > Cost_vec[l.v])
             {
-                
-                
                 l_prime.g = l.g + (qmax - l.q)*Cost_vec[l.v];
                 l_prime.q = qmax - distance;
                 // std::cout<<distance<<std::endl;
-                // std::cout<<v_prime<<std::endl;
+                //std::cout<<"The q value for neighbour "<<v_prime<<" of vertex "<< l.v <<" is "<<l_prime.q<<std::endl;
             }
             else
             {
@@ -348,43 +346,55 @@ int main()
                 {
                     l_prime.g = l.g + (distance - l.q)*Cost_vec[l.v];
                     l_prime.q = 0;
+                    //std::cout<<"The q value for neighbour "<<v_prime<<" of vertex "<< l.v <<" is "<<l_prime.q<<std::endl;
                 }
                 else
                 {
                     l_prime.g = l.g;
                     l_prime.q = l.q - distance;
-                }
+                    //std::cout<<"The q value for neighbour "<<v_prime<<" of vertex "<< l.v <<" is "<<l_prime.q<<std::endl;
+                }   
             }
-            l_prime.id++;
+            
             l_prime.f = l_prime.g + getFloatHeur(computed_heur, v_prime);
             lab.push_back({l_prime.v, l_prime.id, l_prime.f, l_prime.g, l_prime.q});
-            OPEN.insert(std::make_pair(lab[0].f, lab[0].id));
+            //std::cout<<l_prime.f<<std::endl;
+            if (CheckForPrune(l_prime, frontier))
+            {
+                continue;
+            }
+            OPEN.insert(std::make_pair(l_prime.f, l_prime.id)); //--> SOME ERROR HERE?
         }
         
     }
 
     //Find the optimal path
-    std::vector<int> optimalPath;
-    label currentLabel = lab[target_label.id];
-    optimalPath.push_back(currentLabel.v);
+    // std::vector<int> optimalPath;
+    // label currentLabel = lab[target_label.id];
+    // optimalPath.push_back(currentLabel.v);
 
-    while (currentLabel.v != s) {
-        for (const auto& l : frontier[currentLabel.v]) {
-            if (l.g == currentLabel.g - getdist(adj, currentLabel.v, l.v, n)) {
-                currentLabel = l;
-                optimalPath.push_back(currentLabel.v);
-                break;
-            }
-        }
+    // while (currentLabel.v != s) {
+    //     for (const auto& l : frontier[currentLabel.v]) {
+    //         if (l.g == currentLabel.g - getdist(adj, currentLabel.v, l.v, n)) {
+    //             currentLabel = l;
+    //             optimalPath.push_back(currentLabel.v);
+    //             break;
+    //         }
+    //     }
+    // }
+
+    // //std::reverse(optimalPath.begin(), optimalPath.end());
+
+    // std::cout << "Optimal Path: ";
+    // for (const auto& vertex : optimalPath) {
+    //     std::cout << vertex << " ";
+    // }    
+    // std::cout << std::endl;
+
+    for(auto itr: lab)
+    {
+        std::cout<<itr.v<<std::endl;
     }
-
-    std::reverse(optimalPath.begin(), optimalPath.end());
-
-    std::cout << "Optimal Path: ";
-    for (const auto& vertex : optimalPath) {
-        std::cout << vertex << " ";
-    }
-    std::cout << std::endl;
 
     return 0;
 
